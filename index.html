@@ -1,0 +1,2049 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Modus AI — Merchant Risk Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root {
+  --ink: #14110f;
+  --paper: #f5f1ea;
+  --paper-2: #ebe5da;
+  --paper-soft: #faf7f1;
+  --rule: #d8d0c2;
+  --muted: #6b6357;
+  --accent: #b8410f;
+  --good: #2f5e3a;
+  --good-bg: #e6ebe1;
+  --warn: #8a5a0a;
+  --warn-bg: #f0e6cf;
+  --bad: #7a1f10;
+  --bad-bg: #f0d9d2;
+  --serif: 'Fraunces', 'Times New Roman', serif;
+  --sans: 'Inter Tight', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', 'Menlo', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+}
+
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+
+/* ─────────── TOP BAR ─────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 32px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.brand {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+}
+.brand .dot { color: var(--accent); }
+.crumbs {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.crumbs span { color: var(--ink); }
+.crumbs .sep { padding: 0 8px; opacity: 0.4; }
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  display: grid; place-items: center;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+/* ─────────── SHELL ─────────── */
+.shell {
+  max-width: 1340px;
+  margin: 0 auto;
+  padding: 32px 32px 80px;
+}
+
+/* ─────────── BUTTONS ─────────── */
+.btn {
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding: 10px 18px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:hover { background: var(--ink); color: var(--paper); }
+.btn.primary { background: var(--ink); color: var(--paper); }
+.btn.primary:hover { background: var(--accent); border-color: var(--accent); }
+.btn.danger { color: var(--bad); border-color: var(--bad); }
+.btn.danger:hover { background: var(--bad); color: var(--paper); border-color: var(--bad); }
+.btn.ghost { border-color: var(--rule); color: var(--muted); }
+.btn.ghost:hover { background: var(--paper-2); color: var(--ink); border-color: var(--ink); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.lg { padding: 14px 28px; font-size: 14px; }
+
+/* ─────────── PAGE HEADERS ─────────── */
+.page-kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.page-title {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 44px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+.page-sub {
+  font-size: 15px;
+  color: var(--muted);
+  max-width: 680px;
+  line-height: 1.55;
+  margin-bottom: 32px;
+}
+.section-rule {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 32px 0;
+}
+
+/* ═══════════════════════════════════════
+   SCREEN 1 — QUEUE
+═══════════════════════════════════════ */
+.queue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-bottom: 32px;
+  border: 1px solid var(--rule);
+  background: var(--paper-soft);
+}
+.stat {
+  padding: 18px 22px;
+  border-right: 1px solid var(--rule);
+}
+.stat:last-child { border-right: none; }
+.stat-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.stat-value {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.stat-value.legit { color: var(--good); }
+.stat-value.review { color: var(--warn); }
+.stat-value.susp { color: var(--bad); }
+
+.queue-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--paper);
+}
+.queue-table th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 12px 16px;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper-soft);
+  font-weight: 500;
+}
+.queue-table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13.5px;
+}
+.queue-table tr.queue-row { cursor: pointer; transition: background 0.1s ease; }
+.queue-table tr.queue-row:hover { background: var(--paper-soft); }
+.queue-table .merchant-name {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.005em;
+}
+.queue-table .merchant-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.queue-table .id-cell {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.queue-table .ts-cell {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* verdict pill */
+.verdict-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 1px solid;
+}
+.verdict-pill.legitimate { color: var(--good); background: var(--good-bg); border-color: var(--good); }
+.verdict-pill.review     { color: var(--warn); background: var(--warn-bg); border-color: var(--warn); }
+.verdict-pill.suspicious { color: var(--bad);  background: var(--bad-bg);  border-color: var(--bad);  }
+.verdict-pill.pending    { color: var(--muted); background: var(--paper-2); border-color: var(--rule); }
+.verdict-pill .dot {
+  width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+}
+
+.score-cell {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════
+   SCREEN 2 — SUBMIT FORM
+═══════════════════════════════════════ */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 60px;
+  margin-top: 32px;
+}
+.form-card {
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  padding: 32px;
+}
+.form-card h3 {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 24px;
+  font-weight: 500;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+}
+.field label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.field input, .field select, .field textarea {
+  border: none;
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  padding: 8px 0;
+  font-size: 14.5px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-bottom-color: var(--accent);
+}
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.form-side {
+  padding-top: 8px;
+}
+.form-side h4 {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+.form-side p {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.preset-list {
+  border: 1px solid var(--rule);
+  background: var(--paper-soft);
+  margin-top: 24px;
+}
+.preset-item {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+.preset-item:last-child { border-bottom: none; }
+.preset-item:hover { background: var(--paper-2); }
+.preset-name {
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: -0.005em;
+}
+.preset-desc {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.preset-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  margin-top: 6px;
+  margin-right: 4px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  color: var(--muted);
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+}
+
+/* ═══════════════════════════════════════
+   SCREEN 3 — PROCESSING
+═══════════════════════════════════════ */
+.processing-shell {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 60px;
+  margin-top: 16px;
+}
+.processing-status h2 {
+  font-family: var(--serif);
+  font-size: 36px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+.processing-merchant {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 32px;
+  letter-spacing: 0.02em;
+}
+.progress-bar {
+  height: 4px;
+  background: var(--paper-2);
+  position: relative;
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+.progress-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+.track-header {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 24px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.track-header .bar {
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+.enrichment-list {
+  display: flex;
+  flex-direction: column;
+}
+.enrichment-row {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+}
+.enrichment-row:last-child { border-bottom: none; }
+.enrichment-row .icon {
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+.enrichment-row.pending .icon { color: var(--muted); }
+.enrichment-row.running .icon { color: var(--warn); animation: pulse 1.4s infinite; }
+.enrichment-row.done .icon    { color: var(--good); }
+.enrichment-row.flag .icon    { color: var(--bad); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.enrichment-row .name {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+.enrichment-row .result {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+.enrichment-row.flag .result { color: var(--bad); font-weight: 600; }
+
+.processing-side {
+  border-left: 1px solid var(--rule);
+  padding-left: 32px;
+}
+.processing-side h3 {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+  font-weight: 500;
+}
+.kv-list {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 4px 12px;
+  font-size: 12.5px;
+}
+.kv-list dt {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-top: 3px;
+}
+.kv-list dd {
+  font-weight: 500;
+  border-bottom: 1px dotted var(--rule);
+  padding-bottom: 6px;
+  margin-bottom: 2px;
+  word-break: break-word;
+}
+
+/* ═══════════════════════════════════════
+   SCREEN 4 — DECISION
+═══════════════════════════════════════ */
+.verdict-block {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 32px;
+  padding-bottom: 28px;
+  border-bottom: 2px solid var(--ink);
+}
+.merchant-name-big {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 52px;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+.merchant-meta-big {
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.merchant-meta-big span { color: var(--ink); }
+.verdict-big {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.verdict-big-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.verdict-big-value {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 36px;
+  letter-spacing: -0.015em;
+  padding: 4px 18px;
+  line-height: 1.1;
+  border: 1px solid;
+}
+.verdict-big-value.legitimate { background: var(--good-bg); color: var(--good); border-color: var(--good); }
+.verdict-big-value.review     { background: var(--warn-bg); color: var(--warn); border-color: var(--warn); }
+.verdict-big-value.suspicious { background: var(--bad-bg);  color: var(--bad);  border-color: var(--bad);  }
+.verdict-big-stats {
+  display: flex;
+  gap: 22px;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.verdict-big-stats b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.deciding-grid {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 40px;
+  margin-top: 36px;
+}
+
+.brief {
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.55;
+  font-weight: 400;
+  border-left: 3px solid var(--accent);
+  padding: 4px 0 4px 20px;
+  color: var(--ink);
+}
+
+/* sections inside decision page */
+.section-block { margin-top: 36px; }
+.section-block-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+.section-block-title .num {
+  display: inline-grid;
+  place-items: center;
+  width: 22px; height: 22px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  border: 1px solid var(--rule);
+  padding: 20px 24px;
+  background: var(--paper-soft);
+}
+.inputs-grid .field-display {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.inputs-grid .field-display .label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.inputs-grid .field-display .value {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.evidence-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.col-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.col-title .bar { display: inline-block; width: 18px; height: 1px; }
+.col-title.good .bar { background: var(--good); }
+.col-title.warn .bar { background: var(--warn); }
+.col-title.good { color: var(--good); }
+.col-title.warn { color: var(--warn); }
+.evidence-list { display: flex; flex-direction: column; gap: 12px; }
+.ev {
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  padding: 14px 16px;
+}
+.ev.good { border-left: 3px solid var(--good); }
+.ev.warn { border-left: 3px solid var(--warn); }
+.ev-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.ev-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  letter-spacing: -0.005em;
+}
+.ev-quality {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.ev-quality.high { color: var(--ink); }
+.ev-body {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.ev-source {
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.side-panel {
+  border-left: 1px solid var(--rule);
+  padding-left: 32px;
+}
+.side-panel h3 {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+  font-weight: 500;
+}
+.side-block { margin-bottom: 32px; }
+
+.score-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.score-num-big {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 52px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.score-num-big.legit { color: var(--good); }
+.score-num-big.review { color: var(--warn); }
+.score-num-big.susp { color: var(--bad); }
+.score-of {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.score-bar {
+  position: relative;
+  height: 6px;
+  background: var(--paper-2);
+  margin-top: 6px;
+}
+.score-bar-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  transition: width 0.6s ease;
+}
+.score-bar-fill.legit { background: var(--good); }
+.score-bar-fill.review { background: var(--warn); }
+.score-bar-fill.susp { background: var(--bad); }
+.score-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.score-ticks .legit-t { color: var(--good); }
+.score-ticks .review-t { color: var(--warn); }
+.score-ticks .susp-t { color: var(--bad); }
+
+.actions {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.action-meta {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.audit-strip {
+  margin-top: 28px;
+  padding: 16px 18px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+}
+.audit-strip b { color: var(--ink); font-weight: 600; }
+.audit-strip .label { display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.08em; }
+.audit-strip-link {
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════
+   SCREEN 5 — AUDIT LOG
+═══════════════════════════════════════ */
+.audit-page {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  max-width: 1100px;
+}
+.audit-section {
+  border: 1px solid var(--rule);
+  background: var(--paper);
+}
+.audit-section-head {
+  padding: 14px 20px;
+  background: var(--paper-soft);
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.audit-section-head h3 {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+  font-weight: 600;
+}
+.audit-section-head .meta {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.audit-section-body {
+  padding: 18px 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+.audit-section-body .key {
+  color: var(--muted);
+  display: inline-block;
+  width: 180px;
+}
+.audit-section-body .value {
+  color: var(--ink);
+  font-weight: 500;
+}
+.audit-section-body .hl-good { color: var(--good); }
+.audit-section-body .hl-warn { color: var(--warn); }
+.audit-section-body .hl-bad { color: var(--bad); }
+
+/* ─────────── EMPTY STATE ─────────── */
+.empty {
+  text-align: center;
+  padding: 80px 40px;
+  color: var(--muted);
+  border: 1px dashed var(--rule);
+}
+.empty h3 {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.empty p { font-size: 14px; margin-bottom: 20px; }
+
+/* ─────────── RESPONSIVE ─────────── */
+@media (max-width: 1000px) {
+  .form-grid, .processing-shell, .deciding-grid { grid-template-columns: 1fr; gap: 32px; }
+  .side-panel { border-left: none; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 24px; }
+  .processing-side { border-left: none; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 24px; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .stat:nth-child(2) { border-right: none; }
+  .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--rule); }
+  .merchant-name-big { font-size: 36px; }
+  .verdict-block { grid-template-columns: 1fr; }
+  .verdict-big { align-items: flex-start; }
+  .audit-strip { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .evidence-wrap { grid-template-columns: 1fr; }
+  .inputs-grid { grid-template-columns: 1fr; }
+  .field-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef } = React;
+
+// ═══════════════════════════════════════════════════════════
+// DATA — pre-populated merchants
+// ═══════════════════════════════════════════════════════════
+const SEED_MERCHANTS = [
+  {
+    id: "APP-2026-04711",
+    submittedAt: "2 hr ago",
+    submittedBy: "Razorpay",
+    inputs: {
+      legalName: "Aurora Wellness Pvt Ltd",
+      website: "aurorawellness.in",
+      industry: "Healthcare",
+      subSegment: "Nutraceuticals",
+      lob: "D2C wellness supplements",
+      phone: "+91 98xxx xx412",
+      email: "founders@aurorawellness.in",
+      address: "14, Linking Rd, Bandra W, Mumbai 400050",
+    },
+    verdict: "Needs Review",
+    score: 42,
+    confidence: 0.81,
+    decisionId: "DEC-2026-04711-v1",
+  },
+  {
+    id: "APP-2026-04712",
+    submittedAt: "3 hr ago",
+    submittedBy: "Razorpay",
+    inputs: {
+      legalName: "Coastline Coffee Roasters Pvt Ltd",
+      website: "coastlineroasters.in",
+      industry: "Food & Beverages",
+      subSegment: "Specialty coffee",
+      lob: "Coffee retail and wholesale",
+      phone: "+91 98xxx xx108",
+      email: "hello@coastlineroasters.in",
+      address: "47, Pali Naka, Bandra W, Mumbai 400050",
+    },
+    verdict: "Legitimate",
+    score: 12,
+    confidence: 0.94,
+    decisionId: "DEC-2026-04712-v1",
+  },
+  {
+    id: "APP-2026-04713",
+    submittedAt: "4 hr ago",
+    submittedBy: "Cashfree",
+    inputs: {
+      legalName: "BrightLearn Education Pvt Ltd",
+      website: "brightlearn.in",
+      industry: "Education",
+      subSegment: "Online courses",
+      lob: "Skill-building content",
+      phone: "+91 98xxx xx322",
+      email: "contact@brightlearn.in",
+      address: "12, MG Road, Indiranagar, Bengaluru 560038",
+    },
+    verdict: "Suspicious",
+    score: 87,
+    confidence: 0.91,
+    decisionId: "DEC-2026-04713-v1",
+  },
+  {
+    id: "APP-2026-04714",
+    submittedAt: "5 hr ago",
+    submittedBy: "PayU",
+    inputs: {
+      legalName: "Mehta Textiles & Sons",
+      website: "mehtatextiles.co.in",
+      industry: "Apparel",
+      subSegment: "Wholesale textiles",
+      lob: "B2B fabric distribution",
+      phone: "+91 98xxx xx788",
+      email: "rajesh@mehtatextiles.co.in",
+      address: "Shop 22, Mangaldas Market, Mumbai 400002",
+    },
+    verdict: "Legitimate",
+    score: 18,
+    confidence: 0.89,
+    decisionId: "DEC-2026-04714-v1",
+  },
+  {
+    id: "APP-2026-04715",
+    submittedAt: "6 hr ago",
+    submittedBy: "Razorpay",
+    inputs: {
+      legalName: "Quantum Healthtech Pvt Ltd",
+      website: "quantumhealthtech.io",
+      industry: "Healthcare",
+      subSegment: "Diagnostics",
+      lob: "Home sample collection",
+      phone: "+91 98xxx xx901",
+      email: "ops@quantumhealthtech.io",
+      address: "Tower B, Phoenix Mills, Lower Parel, Mumbai 400013",
+    },
+    verdict: "Needs Review",
+    score: 38,
+    confidence: 0.76,
+    decisionId: "DEC-2026-04715-v1",
+  },
+];
+
+const PRESETS = [
+  {
+    name: "Clean retail merchant",
+    desc: "Predictable Legitimate verdict — apparel store with clean signals",
+    expected: "Legitimate",
+    inputs: {
+      legalName: "Patel Apparels Pvt Ltd",
+      website: "patelapparels.in",
+      industry: "Apparel",
+      subSegment: "Family clothing",
+      lob: "Retail apparel store",
+      phone: "+91 98765 43210",
+      email: "store@patelapparels.in",
+      address: "Shop 14, Gandhi Bazaar, Pune 411001",
+    },
+  },
+  {
+    name: "Nutraceutical brand",
+    desc: "High-risk MCC with thin signals — likely Needs Review",
+    expected: "Needs Review",
+    inputs: {
+      legalName: "Vitality First Pvt Ltd",
+      website: "vitalityfirst.in",
+      industry: "Healthcare",
+      subSegment: "Nutraceuticals",
+      lob: "Weight management supplements",
+      phone: "+91 98xxx xx412",
+      email: "founder@vitalityfirst.in",
+      address: "201, Brigade Road, Bengaluru 560001",
+    },
+  },
+  {
+    name: "Suspected transaction laundering",
+    desc: "Education claim, gambling-adjacent terms — likely Suspicious",
+    expected: "Suspicious",
+    inputs: {
+      legalName: "WinSure Learning Pvt Ltd",
+      website: "winsurelearning.bet",
+      industry: "Education",
+      subSegment: "Online courses",
+      lob: "Daily prediction games and skill courses",
+      phone: "+91 98xxx xx100",
+      email: "support@winsurelearning.bet",
+      address: "12, MG Road, Indiranagar, Bengaluru 560038",
+    },
+  },
+];
+
+// ═══════════════════════════════════════════════════════════
+// VERDICT CALCULATOR
+// Deterministic-but-input-aware fake decisioning
+// ═══════════════════════════════════════════════════════════
+const HIGH_RISK_KEYWORDS = [
+  "casino", "betting", "gambling", "prediction", "win", "deposit",
+  "crypto", "forex", "binary", "fantasy",
+  "weight loss", "miracle", "cure", "healing", "essential oil",
+  "adult", "escort",
+];
+
+const SUSPICIOUS_TLDS = [".bet", ".xyz", ".tk", ".click", ".loan"];
+
+const HIGH_RISK_SUBSEGMENTS = [
+  "nutraceuticals", "supplements", "crypto", "gambling",
+  "forex", "adult", "psychic", "tarot",
+];
+
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h) + s.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
+
+function calculateVerdict(inputs) {
+  // Concatenate all input fields for signal scanning
+  const blob = Object.values(inputs).join(" ").toLowerCase();
+  const seed = hashStr(blob);
+
+  let score = 15 + (seed % 10); // base 15-24
+
+  const flags = {
+    riskyKeyword: false,
+    suspiciousTLD: false,
+    highRiskSegment: false,
+    industryMismatch: false,
+    addressCluster: false,
+    freeEmail: false,
+    cleanEntity: true,
+  };
+
+  // Keyword scan
+  for (const kw of HIGH_RISK_KEYWORDS) {
+    if (blob.includes(kw)) {
+      flags.riskyKeyword = kw;
+      score += 25;
+      break;
+    }
+  }
+
+  // TLD scan
+  for (const tld of SUSPICIOUS_TLDS) {
+    if ((inputs.website || "").toLowerCase().endsWith(tld)) {
+      flags.suspiciousTLD = tld;
+      score += 20;
+      break;
+    }
+  }
+
+  // Sub-segment scan
+  for (const seg of HIGH_RISK_SUBSEGMENTS) {
+    if ((inputs.subSegment || "").toLowerCase().includes(seg)) {
+      flags.highRiskSegment = seg;
+      score += 12;
+      break;
+    }
+  }
+
+  // Industry mismatch — declared category vs LOB or website
+  const industry = (inputs.industry || "").toLowerCase();
+  const lob = (inputs.lob || "").toLowerCase();
+  const site = (inputs.website || "").toLowerCase();
+  if (industry === "education" && (lob.includes("game") || lob.includes("predict") || lob.includes("bet"))) {
+    flags.industryMismatch = true;
+    score += 30;
+  }
+  if (industry === "education" && site.endsWith(".bet")) {
+    flags.industryMismatch = true;
+    score += 15;
+  }
+
+  // Address cluster — known address used by other suspicious examples
+  if ((inputs.address || "").includes("12, MG Road, Indiranagar")) {
+    flags.addressCluster = true;
+    score += 25;
+  }
+
+  // Free-provider email for non-personal business
+  const email = (inputs.email || "").toLowerCase();
+  if (/(gmail|yahoo|hotmail|outlook)\./.test(email) && !lob.includes("kirana") && !lob.includes("retail")) {
+    flags.freeEmail = true;
+    score += 5;
+  }
+
+  // Clean Pvt Ltd / LLP entity
+  const ln = (inputs.legalName || "").toLowerCase();
+  if (!ln.includes("pvt ltd") && !ln.includes("llp") && !ln.includes("private limited")) {
+    flags.cleanEntity = false;
+    score += 8;
+  }
+
+  score = Math.min(99, Math.max(2, score));
+
+  let verdict, confidence;
+  if (score <= 25 && !flags.riskyKeyword && !flags.suspiciousTLD && !flags.industryMismatch) {
+    verdict = "Legitimate";
+    confidence = 0.85 + (seed % 10) / 100;
+  } else if (score >= 61) {
+    verdict = "Suspicious";
+    confidence = 0.85 + (seed % 12) / 100;
+  } else {
+    verdict = "Needs Review";
+    confidence = 0.70 + (seed % 18) / 100;
+  }
+  confidence = Math.round(confidence * 100) / 100;
+
+  return { score, verdict, confidence, flags, seed };
+}
+
+// ═══════════════════════════════════════════════════════════
+// EVIDENCE BUILDER (from flags + inputs)
+// ═══════════════════════════════════════════════════════════
+function buildEvidence(inputs, calc) {
+  const supporting = [];
+  const concerning = [];
+
+  // Always-on supporting if entity looks formed
+  if (calc.flags.cleanEntity) {
+    supporting.push({
+      title: "Active Pvt Ltd / LLP entity",
+      quality: "High · Rule",
+      body: `${inputs.legalName} is a registered legal entity with status "Active" in the corporate registry. Directors clean, no disqualifications.`,
+      source: "MCA21 entity lookup · verified just now",
+    });
+  }
+
+  if (!calc.flags.riskyKeyword && !calc.flags.suspiciousTLD) {
+    supporting.push({
+      title: "Domain looks established",
+      quality: "Medium · Rule",
+      body: `Domain ${inputs.website} resolves successfully with valid SSL. WHOIS shows clean registrant data.`,
+      source: "WHOIS + HTTP probe",
+    });
+  }
+
+  if (!calc.flags.addressCluster) {
+    supporting.push({
+      title: "No infrastructure overlap",
+      quality: "High · Graph",
+      body: "Address, phone, email, and registrant do not match any prior flagged merchant in the consortium graph.",
+      source: "Internal graph DB · 1.2M historical merchants",
+    });
+  }
+
+  if (calc.score < 30 && !calc.flags.freeEmail) {
+    supporting.push({
+      title: "Contact details consistent",
+      quality: "Medium · Rule + AI",
+      body: "Email domain matches website domain; phone number is mobile/landline (not VoIP); no contact reuse detected.",
+      source: "Email DNS check + Numverify-style API",
+    });
+  }
+
+  // CONCERNING
+  if (calc.flags.industryMismatch) {
+    concerning.push({
+      title: "Industry mismatch on website",
+      quality: "High · AI · 0.91",
+      body: `Declared "${inputs.industry}" does not match the observed website content. The LOB description suggests gambling-adjacent activity disguised as education.`,
+      source: `${inputs.website} · LLM website analysis · prompt v2.4`,
+    });
+  }
+
+  if (calc.flags.suspiciousTLD) {
+    concerning.push({
+      title: `Suspicious TLD: ${calc.flags.suspiciousTLD}`,
+      quality: "High · Rule",
+      body: `The website uses TLD ${calc.flags.suspiciousTLD}, commonly associated with gambling, scams, or short-lived shell sites. Cross-check with declared category required.`,
+      source: "WHOIS + internal TLD risk policy",
+    });
+  }
+
+  if (calc.flags.riskyKeyword) {
+    concerning.push({
+      title: "Red-flag keyword detected",
+      quality: "High · AI",
+      body: `The phrase "${calc.flags.riskyKeyword}" was detected in the merchant's declared business or website content. This phrase is on the high-risk content list.`,
+      source: "LLM website analysis · evidence quoted from page",
+    });
+  }
+
+  if (calc.flags.addressCluster) {
+    concerning.push({
+      title: "Address cluster — repeat infrastructure",
+      quality: "High · Graph",
+      body: `The address "${inputs.address}" matches three previously-flagged merchants from the last 90 days. This is a strong mule-cluster signal.`,
+      source: "Internal graph DB",
+    });
+  }
+
+  if (calc.flags.highRiskSegment) {
+    concerning.push({
+      title: "Elevated MCC category",
+      quality: "High · Rule",
+      body: `${calc.flags.highRiskSegment} is on the PA's elevated-monitoring list. Requires additional license verification per category policy.`,
+      source: "Internal MCC risk policy v3.1",
+    });
+  }
+
+  if (calc.flags.freeEmail) {
+    concerning.push({
+      title: "Free-provider contact email",
+      quality: "Medium · Rule",
+      body: `The contact email uses a free provider (Gmail/Yahoo/etc.). For the declared business type, a domain-matched email would be more appropriate.`,
+      source: "Email DNS check",
+    });
+  }
+
+  return { supporting, concerning };
+}
+
+function buildAnalystBrief(inputs, calc, evidence) {
+  if (calc.verdict === "Legitimate") {
+    return `${inputs.legalName} presents as a legitimately registered ${(inputs.industry || "").toLowerCase()} merchant with a clean entity, consistent contact details, and no infrastructure overlap with prior flagged merchants. All High-quality signals are corroborating. Recommended action: auto-approve at standard MDR.`;
+  }
+  if (calc.verdict === "Suspicious") {
+    return `${inputs.legalName} declares ${(inputs.industry || "").toLowerCase()} but multiple High-quality signals indicate the actual business is not what is declared. The strongest concerning evidence: ${(evidence.concerning[0] || {}).title || "industry mismatch"}. Recommended action: route to senior reviewer; do not approve without manual verification.`;
+  }
+  return `${inputs.legalName} presents as a registered merchant in a higher-risk category. While entity, directors, and infrastructure signals are clean, the ${(inputs.subSegment || "").toLowerCase()} category and ${evidence.concerning.length > 0 ? evidence.concerning[0].title.toLowerCase() : "category-driven flags"} warrant manual verification before approval.`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ENRICHMENT LIST (for processing screen)
+// ═══════════════════════════════════════════════════════════
+const ENRICHMENTS = [
+  // Track A — deterministic
+  { name: "MCA21 entity lookup", track: "A", duration: 800 },
+  { name: "GSTIN verification", track: "A", duration: 700 },
+  { name: "Sanctions / OFAC / RBI defaulter", track: "A", duration: 900 },
+  { name: "WHOIS · domain age", track: "A", duration: 600 },
+  { name: "Address resolution (Google Places)", track: "A", duration: 1100 },
+  { name: "Phone validity & type", track: "A", duration: 750 },
+  { name: "Email deliverability", track: "A", duration: 850 },
+  { name: "Graph DB · address/phone/email reuse", track: "A", duration: 1300 },
+  // Track B — AI
+  { name: "Website content analysis (Task 1)", track: "B", duration: 2200 },
+  { name: "Industry × declared category match", track: "B", duration: 1800 },
+  { name: "Adverse media RAG", track: "B", duration: 2400 },
+];
+
+// ═══════════════════════════════════════════════════════════
+// COMPONENTS
+// ═══════════════════════════════════════════════════════════
+
+function VerdictPill({ verdict, size = "sm" }) {
+  const cls = (verdict || "").toLowerCase().replace(/\s+/g, "");
+  const k = cls === "needsreview" ? "review" : cls;
+  return (
+    <span className={`verdict-pill ${k}`}>
+      <span className="dot"></span>{verdict}
+    </span>
+  );
+}
+
+// ─────────────────────────────────────────────
+// SCREEN 1 — QUEUE
+// ─────────────────────────────────────────────
+function QueueScreen({ merchants, onSelect, onSubmitNew }) {
+  const stats = useMemo(() => {
+    const out = { total: merchants.length, legit: 0, review: 0, susp: 0 };
+    merchants.forEach(m => {
+      if (m.verdict === "Legitimate") out.legit++;
+      else if (m.verdict === "Needs Review") out.review++;
+      else if (m.verdict === "Suspicious") out.susp++;
+    });
+    return out;
+  }, [merchants]);
+
+  return (
+    <>
+      <div className="queue-header">
+        <div>
+          <div className="page-kicker">RISK CONSOLE · ONBOARDING QUEUE</div>
+          <h1 className="page-title">Merchant Applications</h1>
+          <p className="page-sub">Risk decisions across all incoming merchant applications. Submit a new application to see the full pipeline run end-to-end.</p>
+        </div>
+        <button className="btn primary lg" onClick={onSubmitNew}>+ Submit new merchant</button>
+      </div>
+
+      <div className="stats-row">
+        <div className="stat">
+          <div className="stat-label">Today's queue</div>
+          <div className="stat-value">{stats.total}</div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">Legitimate</div>
+          <div className="stat-value legit">{stats.legit}</div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">Needs review</div>
+          <div className="stat-value review">{stats.review}</div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">Suspicious</div>
+          <div className="stat-value susp">{stats.susp}</div>
+        </div>
+      </div>
+
+      <table className="queue-table">
+        <thead>
+          <tr>
+            <th>Application</th>
+            <th>Industry</th>
+            <th>Verdict</th>
+            <th>Score</th>
+            <th>Submitted</th>
+          </tr>
+        </thead>
+        <tbody>
+          {merchants.map(m => (
+            <tr key={m.id} className="queue-row" onClick={() => onSelect(m)}>
+              <td>
+                <div className="merchant-name">{m.inputs.legalName}</div>
+                <div className="merchant-meta">{m.inputs.website}</div>
+                <div className="id-cell" style={{marginTop: 6}}>{m.id}</div>
+              </td>
+              <td>
+                <div>{m.inputs.industry}</div>
+                <div style={{fontSize: 11.5, color: "var(--muted)", marginTop: 2}}>{m.inputs.subSegment}</div>
+              </td>
+              <td><VerdictPill verdict={m.verdict} /></td>
+              <td className="score-cell">{m.score}/100</td>
+              <td className="ts-cell">{m.submittedAt}<br/>by {m.submittedBy}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────
+// SCREEN 2 — SUBMIT FORM
+// ─────────────────────────────────────────────
+function SubmitScreen({ onCancel, onSubmit }) {
+  const [inputs, setInputs] = useState({
+    legalName: "",
+    website: "",
+    industry: "",
+    subSegment: "",
+    lob: "",
+    phone: "",
+    email: "",
+    address: "",
+  });
+
+  function setField(k, v) {
+    setInputs(prev => ({ ...prev, [k]: v }));
+  }
+
+  function applyPreset(preset) {
+    setInputs(preset.inputs);
+  }
+
+  function canSubmit() {
+    return Object.values(inputs).every(v => (v || "").trim().length > 0);
+  }
+
+  return (
+    <>
+      <div className="page-kicker">NEW APPLICATION</div>
+      <h1 className="page-title">Submit merchant for review</h1>
+      <p className="page-sub">Enter the merchant's seven required fields. The pipeline will run all enrichments and produce a verdict in seconds. Use a preset on the right to auto-fill realistic test data.</p>
+
+      <div className="form-grid">
+        <div className="form-card">
+          <h3>Required inputs · 7 fields</h3>
+          <div className="field">
+            <label>Legal entity name</label>
+            <input type="text" value={inputs.legalName} onChange={e => setField("legalName", e.target.value)} placeholder="e.g. Aurora Wellness Pvt Ltd" />
+          </div>
+          <div className="field">
+            <label>Merchant website URL</label>
+            <input type="text" value={inputs.website} onChange={e => setField("website", e.target.value)} placeholder="e.g. aurorawellness.in" />
+          </div>
+          <div className="field-row">
+            <div className="field">
+              <label>Industry / Category</label>
+              <input type="text" value={inputs.industry} onChange={e => setField("industry", e.target.value)} placeholder="e.g. Healthcare" />
+            </div>
+            <div className="field">
+              <label>Sub-segment</label>
+              <input type="text" value={inputs.subSegment} onChange={e => setField("subSegment", e.target.value)} placeholder="e.g. Nutraceuticals" />
+            </div>
+          </div>
+          <div className="field">
+            <label>Line of business</label>
+            <input type="text" value={inputs.lob} onChange={e => setField("lob", e.target.value)} placeholder="e.g. D2C wellness supplements" />
+          </div>
+          <div className="field-row">
+            <div className="field">
+              <label>Phone</label>
+              <input type="text" value={inputs.phone} onChange={e => setField("phone", e.target.value)} placeholder="e.g. +91 98xxx xx412" />
+            </div>
+            <div className="field">
+              <label>Email</label>
+              <input type="text" value={inputs.email} onChange={e => setField("email", e.target.value)} placeholder="e.g. founders@aurorawellness.in" />
+            </div>
+          </div>
+          <div className="field">
+            <label>Registered business address</label>
+            <input type="text" value={inputs.address} onChange={e => setField("address", e.target.value)} placeholder="e.g. 14, Linking Rd, Bandra W, Mumbai 400050" />
+          </div>
+
+          <div className="form-actions">
+            <button className="btn primary lg" onClick={() => onSubmit(inputs)} disabled={!canSubmit()}>
+              Run pipeline →
+            </button>
+            <button className="btn ghost lg" onClick={onCancel}>Cancel</button>
+          </div>
+        </div>
+
+        <div className="form-side">
+          <h4>How this works</h4>
+          <p>Submitting kicks off the six-stage pipeline. Stages 1, 2, 5, and 6 are deterministic; stages 3 and 4 contain the AI-bounded operations.</p>
+          <p>Each enrichment runs in parallel where possible; the verdict is auditable and reproducible byte-for-byte from the audit log.</p>
+
+          <div className="preset-list">
+            {PRESETS.map((p, i) => (
+              <div key={i} className="preset-item" onClick={() => applyPreset(p)}>
+                <div className="preset-name">{p.name}</div>
+                <div className="preset-desc">{p.desc}</div>
+                <span className="preset-tag">Expected: {p.expected}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────
+// SCREEN 3 — PROCESSING (animated)
+// ─────────────────────────────────────────────
+function ProcessingScreen({ inputs, onComplete }) {
+  const [enrichmentStates, setEnrichmentStates] = useState(
+    ENRICHMENTS.map(() => ({ status: "pending", result: "" }))
+  );
+  const [progress, setProgress] = useState(0);
+  const calcRef = useRef(null);
+
+  useEffect(() => {
+    calcRef.current = calculateVerdict(inputs);
+    let cumulative = 0;
+    const totalDuration = ENRICHMENTS.reduce((acc, e) => acc + e.duration, 0);
+    const compressedTotal = 4500;
+    const scale = compressedTotal / totalDuration;
+
+    ENRICHMENTS.forEach((e, idx) => {
+      const startAt = cumulative * scale;
+      const endAt = (cumulative + e.duration) * scale;
+      cumulative += e.duration;
+
+      // start
+      setTimeout(() => {
+        setEnrichmentStates(prev => {
+          const next = [...prev];
+          next[idx] = { ...next[idx], status: "running" };
+          return next;
+        });
+      }, startAt);
+
+      // end
+      setTimeout(() => {
+        setEnrichmentStates(prev => {
+          const next = [...prev];
+          const isFlag = decideFlag(e, calcRef.current);
+          next[idx] = {
+            ...next[idx],
+            status: isFlag ? "flag" : "done",
+            result: enrichmentResult(e, inputs, calcRef.current, isFlag),
+          };
+          return next;
+        });
+        setProgress(((idx + 1) / ENRICHMENTS.length) * 100);
+      }, endAt);
+    });
+
+    // Auto-advance
+    setTimeout(() => onComplete(calcRef.current), compressedTotal + 800);
+  }, []);
+
+  return (
+    <>
+      <div className="processing-shell">
+        <div className="processing-status">
+          <div className="page-kicker">RUNNING PIPELINE</div>
+          <h2>Enriching merchant signals</h2>
+          <div className="processing-merchant">{inputs.legalName} · {inputs.website}</div>
+
+          <div className="progress-bar">
+            <div className="progress-fill" style={{ width: `${progress}%` }}></div>
+          </div>
+
+          <div className="track-header">
+            <span>Track A · Deterministic enrichments</span>
+            <span className="bar"></span>
+          </div>
+          <div className="enrichment-list">
+            {ENRICHMENTS.map((e, idx) => e.track === "A" && (
+              <EnrichmentRow key={idx} e={e} state={enrichmentStates[idx]} />
+            ))}
+          </div>
+
+          <div className="track-header">
+            <span>Track B · AI enrichments</span>
+            <span className="bar"></span>
+          </div>
+          <div className="enrichment-list">
+            {ENRICHMENTS.map((e, idx) => e.track === "B" && (
+              <EnrichmentRow key={idx} e={e} state={enrichmentStates[idx]} />
+            ))}
+          </div>
+        </div>
+
+        <div className="processing-side">
+          <h3>Submitted application</h3>
+          <dl className="kv-list">
+            <dt>Entity</dt><dd>{inputs.legalName}</dd>
+            <dt>Website</dt><dd>{inputs.website}</dd>
+            <dt>Industry</dt><dd>{inputs.industry}</dd>
+            <dt>Sub-seg</dt><dd>{inputs.subSegment}</dd>
+            <dt>LOB</dt><dd>{inputs.lob}</dd>
+            <dt>Phone</dt><dd>{inputs.phone}</dd>
+            <dt>Email</dt><dd>{inputs.email}</dd>
+            <dt>Address</dt><dd>{inputs.address}</dd>
+          </dl>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function EnrichmentRow({ e, state }) {
+  const icon = state.status === "pending" ? "○"
+              : state.status === "running" ? "●"
+              : state.status === "flag" ? "✕"
+              : "✓";
+  return (
+    <div className={`enrichment-row ${state.status}`}>
+      <span className="icon">{icon}</span>
+      <span className="name">{e.name}</span>
+      <span className="result">{state.result}</span>
+    </div>
+  );
+}
+
+function decideFlag(enrichment, calc) {
+  const f = calc.flags;
+  if (enrichment.name.includes("Graph") && f.addressCluster) return true;
+  if (enrichment.name.includes("Website content") && f.industryMismatch) return true;
+  if (enrichment.name.includes("Industry") && f.industryMismatch) return true;
+  if (enrichment.name.includes("WHOIS") && f.suspiciousTLD) return true;
+  return false;
+}
+
+function enrichmentResult(enrichment, inputs, calc, isFlag) {
+  if (isFlag) {
+    if (enrichment.name.includes("Graph")) return "3 matches";
+    if (enrichment.name.includes("Website")) return "mismatch";
+    if (enrichment.name.includes("Industry")) return "mismatch";
+    if (enrichment.name.includes("WHOIS")) return "flagged TLD";
+    return "flagged";
+  }
+  if (enrichment.name.includes("MCA21")) return "Active";
+  if (enrichment.name.includes("GSTIN")) return "Active";
+  if (enrichment.name.includes("Sanctions")) return "No hit";
+  if (enrichment.name.includes("WHOIS")) return "Clean";
+  if (enrichment.name.includes("Address")) return "Commercial";
+  if (enrichment.name.includes("Phone")) return "Mobile";
+  if (enrichment.name.includes("Email")) return "Deliverable";
+  if (enrichment.name.includes("Graph")) return "No matches";
+  if (enrichment.name.includes("Website")) return "Match · 0.9";
+  if (enrichment.name.includes("Industry")) return "Match";
+  if (enrichment.name.includes("Adverse")) return "No findings";
+  return "OK";
+}
+
+// ─────────────────────────────────────────────
+// SCREEN 4 — DECISION
+// ─────────────────────────────────────────────
+function DecisionScreen({ merchant, onBack, onAudit }) {
+  const { inputs, score, verdict, confidence, decisionId, supporting, concerning, brief } = merchant;
+  const verdictKey = verdict.toLowerCase().replace(/\s+/g, "") === "needsreview" ? "review" : verdict.toLowerCase();
+  const scoreClass = verdict === "Legitimate" ? "legit" : verdict === "Suspicious" ? "susp" : "review";
+
+  return (
+    <>
+      <div style={{ marginBottom: 16 }}>
+        <button className="btn ghost" onClick={onBack}>← Back to queue</button>
+      </div>
+
+      <div className="verdict-block">
+        <div>
+          <div className="page-kicker">{merchant.id} · submitted {merchant.submittedAt} by {merchant.submittedBy}</div>
+          <h1 className="merchant-name-big">{inputs.legalName}</h1>
+          <div className="merchant-meta-big">
+            <span>{inputs.website}</span>
+            <span>{inputs.industry} · {inputs.subSegment}</span>
+            <span>{(inputs.address || "").split(",").slice(-2).join(", ").trim()}</span>
+          </div>
+        </div>
+        <div className="verdict-big">
+          <div className="verdict-big-label">System verdict</div>
+          <div className={`verdict-big-value ${verdictKey}`}>{verdict}</div>
+          <div className="verdict-big-stats">
+            <span>Score <b>{score}</b>/100</span>
+            <span>Confidence <b>{confidence}</b></span>
+          </div>
+        </div>
+      </div>
+
+      <div className="deciding-grid">
+        <div>
+          <div style={{ marginTop: 32 }}>
+            <p className="brief">{brief}</p>
+          </div>
+
+          {/* SECTION 1 — INPUTS */}
+          <div className="section-block">
+            <div className="section-block-title"><span className="num">1</span>Inputs</div>
+            <div className="inputs-grid">
+              <div className="field-display"><span className="label">Legal entity</span><span className="value">{inputs.legalName}</span></div>
+              <div className="field-display"><span className="label">Website</span><span className="value">{inputs.website}</span></div>
+              <div className="field-display"><span className="label">Industry</span><span className="value">{inputs.industry}</span></div>
+              <div className="field-display"><span className="label">Sub-segment</span><span className="value">{inputs.subSegment}</span></div>
+              <div className="field-display"><span className="label">Line of business</span><span className="value">{inputs.lob}</span></div>
+              <div className="field-display"><span className="label">Phone</span><span className="value">{inputs.phone}</span></div>
+              <div className="field-display"><span className="label">Email</span><span className="value">{inputs.email}</span></div>
+              <div className="field-display"><span className="label">Address</span><span className="value">{inputs.address}</span></div>
+            </div>
+          </div>
+
+          {/* SECTION 2 — ENRICHED DATA / EVIDENCE */}
+          <div className="section-block">
+            <div className="section-block-title"><span className="num">2</span>Enriched data · evidence</div>
+            <div className="evidence-wrap">
+              <div>
+                <div className="col-title good"><span className="bar"></span>Supporting evidence</div>
+                <div className="evidence-list">
+                  {supporting.length === 0 && <div style={{fontSize:13, color:"var(--muted)", fontStyle:"italic"}}>No supporting signals identified.</div>}
+                  {supporting.map((e, i) => (
+                    <div key={i} className="ev good">
+                      <div className="ev-head">
+                        <div className="ev-title">{e.title}</div>
+                        <div className={`ev-quality ${e.quality.startsWith("High") ? "high" : ""}`}>{e.quality}</div>
+                      </div>
+                      <div className="ev-body">{e.body}</div>
+                      <div className="ev-source">Source: {e.source}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="col-title warn"><span className="bar"></span>Concerning evidence</div>
+                <div className="evidence-list">
+                  {concerning.length === 0 && <div style={{fontSize:13, color:"var(--muted)", fontStyle:"italic"}}>No concerning signals identified.</div>}
+                  {concerning.map((e, i) => (
+                    <div key={i} className="ev warn">
+                      <div className="ev-head">
+                        <div className="ev-title">{e.title}</div>
+                        <div className={`ev-quality ${e.quality.startsWith("High") ? "high" : ""}`}>{e.quality}</div>
+                      </div>
+                      <div className="ev-body">{e.body}</div>
+                      <div className="ev-source">Source: {e.source}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 3 — FINAL DECISION (action bar + audit) */}
+          <div className="section-block">
+            <div className="section-block-title"><span className="num">3</span>Final decision</div>
+            <div className="actions">
+              <button className="btn primary">
+                {verdict === "Legitimate" ? "Approve merchant" : verdict === "Suspicious" ? "Confirm rejection" : "Approve with reserve"}
+              </button>
+              <button className="btn">Request documents</button>
+              <button className="btn">Escalate to senior</button>
+              <button className="btn danger">{verdict === "Suspicious" ? "Escalate to AML" : "Reject"}</button>
+              <div className="action-meta">All actions audit-logged</div>
+            </div>
+
+            <div className="audit-strip">
+              <div><span className="label">Decision ID</span><b>{decisionId}</b></div>
+              <div><span className="label">Pipeline</span><b>v2.4.1</b></div>
+              <div><span className="label">Model</span><b>gpt-4.1 · t=0</b></div>
+              <div><span className="label">Replay</span><b>Reproducible</b></div>
+              <div><span className="audit-strip-link" onClick={onAudit}>View full audit log →</span></div>
+            </div>
+          </div>
+        </div>
+
+        <aside className="side-panel">
+          <div className="side-block">
+            <h3>Risk score</h3>
+            <div className="score-row">
+              <div className={`score-num-big ${scoreClass}`}>{score}</div>
+              <div className="score-of">/ 100</div>
+            </div>
+            <div className="score-bar">
+              <div className={`score-bar-fill ${scoreClass}`} style={{ width: `${score}%` }}></div>
+            </div>
+            <div className="score-ticks">
+              <span className="legit-t">0–25 Legit</span>
+              <span className="review-t">26–60 Review</span>
+              <span className="susp-t">61–100 Susp</span>
+            </div>
+          </div>
+
+          <div className="side-block">
+            <h3>Decision rationale</h3>
+            <p style={{ fontSize: 12.5, color: "var(--muted)", lineHeight: 1.55 }}>
+              Score {score} ({verdict === "Legitimate" ? "low" : verdict === "Suspicious" ? "high" : "medium"} band) based on the weighted signal layer. {concerning.length === 0 ? "No concerning signals were identified above the threshold." : `${concerning.length} concerning signal${concerning.length > 1 ? "s" : ""} drove the elevation.`} Routed to <b style={{color: "var(--ink)"}}>{verdict}</b> per decision policy v3.1.
+            </p>
+          </div>
+
+          <div className="side-block">
+            <h3>Confidence</h3>
+            <p style={{ fontSize: 12.5, color: "var(--muted)", lineHeight: 1.55 }}>
+              System confidence: <b style={{color: "var(--ink)"}}>{(confidence * 100).toFixed(0)}%</b>. AI tasks above their confidence floors. No conflicts. No critical enrichment failures.
+            </p>
+          </div>
+        </aside>
+      </div>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────
+// SCREEN 5 — AUDIT LOG
+// ─────────────────────────────────────────────
+function AuditScreen({ merchant, onBack }) {
+  const ts = new Date().toISOString();
+  const inputHash = "sha256:" + (hashStr(JSON.stringify(merchant.inputs)).toString(16).padStart(8, "0")).repeat(4).slice(0, 40);
+
+  return (
+    <>
+      <div style={{ marginBottom: 16 }}>
+        <button className="btn ghost" onClick={onBack}>← Back to decision</button>
+      </div>
+
+      <div className="page-kicker">AUDIT LOG · {merchant.decisionId}</div>
+      <h1 className="page-title">Decision audit record</h1>
+      <p className="page-sub">Every decision in this system is fully reproducible. The audit record captures every input, every enrichment response, every AI call (model + prompt version), and the deterministic logic version applied.</p>
+
+      <div className="audit-page">
+        <div className="audit-section">
+          <div className="audit-section-head">
+            <h3>Decision metadata</h3>
+            <span className="meta">{ts}</span>
+          </div>
+          <div className="audit-section-body">
+            <span className="key">decision_id</span>     <span className="value">{merchant.decisionId}</span>{"\n"}
+            <span className="key">application_id</span>  <span className="value">{merchant.id}</span>{"\n"}
+            <span className="key">verdict</span>         <span className={`value hl-${merchant.verdict === "Legitimate" ? "good" : merchant.verdict === "Suspicious" ? "bad" : "warn"}`}>{merchant.verdict}</span>{"\n"}
+            <span className="key">score</span>           <span className="value">{merchant.score}/100</span>{"\n"}
+            <span className="key">confidence</span>      <span className="value">{merchant.confidence}</span>{"\n"}
+            <span className="key">pipeline_version</span><span className="value">2.4.1</span>{"\n"}
+            <span className="key">decision_logic</span>  <span className="value">policy_v3.1</span>{"\n"}
+            <span className="key">submitted_by</span>    <span className="value">{merchant.submittedBy}</span>
+          </div>
+        </div>
+
+        <div className="audit-section">
+          <div className="audit-section-head">
+            <h3>Input payload</h3>
+            <span className="meta">7 fields · hashed</span>
+          </div>
+          <div className="audit-section-body">
+            <span className="key">input_hash</span>      <span className="value">{inputHash}</span>{"\n"}
+            <span className="key">legal_name</span>      <span className="value">{merchant.inputs.legalName}</span>{"\n"}
+            <span className="key">website</span>         <span className="value">{merchant.inputs.website}</span>{"\n"}
+            <span className="key">industry</span>        <span className="value">{merchant.inputs.industry}</span>{"\n"}
+            <span className="key">sub_segment</span>     <span className="value">{merchant.inputs.subSegment}</span>{"\n"}
+            <span className="key">line_of_business</span><span className="value">{merchant.inputs.lob}</span>{"\n"}
+            <span className="key">phone</span>           <span className="value">{merchant.inputs.phone}</span>{"\n"}
+            <span className="key">email</span>           <span className="value">{merchant.inputs.email}</span>{"\n"}
+            <span className="key">address</span>         <span className="value">{merchant.inputs.address}</span>
+          </div>
+        </div>
+
+        <div className="audit-section">
+          <div className="audit-section-head">
+            <h3>AI calls · model & prompt versions</h3>
+            <span className="meta">2 calls · temp=0</span>
+          </div>
+          <div className="audit-section-body">
+            <span className="key">website_analysis</span>{"\n"}
+            <span className="key">  model</span>          <span className="value">claude-opus-4-7</span>{"\n"}
+            <span className="key">  prompt_version</span> <span className="value">website-analysis-v2.4</span>{"\n"}
+            <span className="key">  temperature</span>    <span className="value">0</span>{"\n"}
+            <span className="key">  output_schema</span>  <span className="value">website_analysis_v2</span>{"\n"}
+            <span className="key">  confidence</span>     <span className="value">{merchant.confidence}</span>{"\n"}
+            {"\n"}
+            <span className="key">business_synthesis</span>{"\n"}
+            <span className="key">  model</span>          <span className="value">claude-opus-4-7</span>{"\n"}
+            <span className="key">  prompt_version</span> <span className="value">synthesis-v1.8</span>{"\n"}
+            <span className="key">  temperature</span>    <span className="value">0</span>{"\n"}
+            <span className="key">  output_schema</span>  <span className="value">analyst_brief_v1</span>
+          </div>
+        </div>
+
+        <div className="audit-section">
+          <div className="audit-section-head">
+            <h3>Enrichment responses</h3>
+            <span className="meta">11 of 11 · all sources logged</span>
+          </div>
+          <div className="audit-section-body">
+            <span className="key">mca21</span>            <span className="value hl-good">active · 200 OK</span>{"\n"}
+            <span className="key">gstin</span>            <span className="value hl-good">active · 200 OK</span>{"\n"}
+            <span className="key">sanctions</span>        <span className="value hl-good">no_hit · 200 OK</span>{"\n"}
+            <span className="key">whois</span>            <span className="value hl-good">resolved · 200 OK</span>{"\n"}
+            <span className="key">address_geocode</span>  <span className="value hl-good">resolved · 200 OK</span>{"\n"}
+            <span className="key">phone_validation</span> <span className="value hl-good">mobile · 200 OK</span>{"\n"}
+            <span className="key">email_smtp</span>       <span className="value hl-good">deliverable · 200 OK</span>{"\n"}
+            <span className="key">graph_lookup</span>     <span className={`value ${merchant.concerning.some(c => c.title.includes("cluster")) ? "hl-bad" : "hl-good"}`}>{merchant.concerning.some(c => c.title.includes("cluster")) ? "3_matches · 200 OK" : "no_match · 200 OK"}</span>{"\n"}
+            <span className="key">website_analysis</span> <span className={`value ${merchant.concerning.some(c => c.title.includes("mismatch")) ? "hl-bad" : "hl-good"}`}>{merchant.concerning.some(c => c.title.includes("mismatch")) ? "mismatch · 200 OK" : "match · 200 OK"}</span>{"\n"}
+            <span className="key">adverse_media</span>    <span className="value hl-good">no_findings · 200 OK</span>{"\n"}
+            <span className="key">mcc_policy</span>       <span className="value hl-good">checked · 200 OK</span>
+          </div>
+        </div>
+
+        <div className="audit-section">
+          <div className="audit-section-head">
+            <h3>Reproducibility</h3>
+            <span className="meta">replay-ready</span>
+          </div>
+          <div className="audit-section-body">
+            This decision is reproducible byte-for-byte using the input_hash, model versions, and prompt versions captured above. Replay endpoint: <span className="value">POST /v1/decisions/{merchant.decisionId}/replay</span>{"\n"}{"\n"}
+            On regulator request, this audit pack can be exported in under 24 hours per the system's compliance SLA.
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// APP
+// ═══════════════════════════════════════════════════════════
+function App() {
+  const [route, setRoute] = useState("queue"); // queue | submit | processing | decision | audit
+  const [merchants, setMerchants] = useState(SEED_MERCHANTS);
+  const [pendingInputs, setPendingInputs] = useState(null);
+  const [activeMerchant, setActiveMerchant] = useState(null);
+
+  function handleSelect(m) {
+    setActiveMerchant(enrichMerchantForView(m));
+    setRoute("decision");
+  }
+
+  function handleSubmitNew() {
+    setRoute("submit");
+  }
+
+  function handleSubmitInputs(inputs) {
+    setPendingInputs(inputs);
+    setRoute("processing");
+  }
+
+  function handleProcessingComplete(calc) {
+    const id = "APP-2026-" + (4720 + merchants.length).toString().padStart(5, "0");
+    const decisionId = id.replace("APP", "DEC") + "-v1";
+    const evidence = buildEvidence(pendingInputs, calc);
+    const brief = buildAnalystBrief(pendingInputs, calc, evidence);
+
+    const newMerchant = {
+      id,
+      submittedAt: "just now",
+      submittedBy: "Razorpay",
+      inputs: pendingInputs,
+      verdict: calc.verdict,
+      score: calc.score,
+      confidence: calc.confidence,
+      decisionId,
+      supporting: evidence.supporting,
+      concerning: evidence.concerning,
+      brief,
+    };
+
+    setMerchants(prev => [newMerchant, ...prev]);
+    setActiveMerchant(newMerchant);
+    setRoute("decision");
+  }
+
+  function handleAudit() {
+    setRoute("audit");
+  }
+
+  function handleBackToDecision() {
+    setRoute("decision");
+  }
+
+  function handleBackToQueue() {
+    setActiveMerchant(null);
+    setPendingInputs(null);
+    setRoute("queue");
+  }
+
+  function enrichMerchantForView(m) {
+    // For seed merchants, build evidence on the fly
+    if (m.supporting && m.concerning) return m;
+    const calc = calculateVerdict(m.inputs);
+    const evidence = buildEvidence(m.inputs, calc);
+    const brief = buildAnalystBrief(m.inputs, calc, evidence);
+    return { ...m, supporting: evidence.supporting, concerning: evidence.concerning, brief };
+  }
+
+  // Crumbs string per route
+  const crumbs = {
+    queue: ["Risk console", "Onboarding queue"],
+    submit: ["Risk console", "Onboarding queue", "New application"],
+    processing: ["Risk console", "Onboarding queue", "Processing"],
+    decision: ["Risk console", "Onboarding queue", activeMerchant?.id || "Decision"],
+    audit: ["Risk console", activeMerchant?.id || "Decision", "Audit log"],
+  }[route];
+
+  return (
+    <>
+      <header className="topbar">
+        <div className="brand" onClick={handleBackToQueue}>modus<span className="dot">.</span>ai</div>
+        <div className="crumbs">
+          {crumbs.map((c, i) => (
+            <React.Fragment key={i}>
+              {i === crumbs.length - 1 ? <span>{c}</span> : <>{c}<span className="sep">/</span></>}
+            </React.Fragment>
+          ))}
+        </div>
+        <div className="user-info">
+          <span>Priya Menon · Senior Analyst</span>
+          <span className="avatar">PM</span>
+        </div>
+      </header>
+
+      <main className="shell">
+        {route === "queue" && (
+          <QueueScreen merchants={merchants} onSelect={handleSelect} onSubmitNew={handleSubmitNew} />
+        )}
+        {route === "submit" && (
+          <SubmitScreen onCancel={handleBackToQueue} onSubmit={handleSubmitInputs} />
+        )}
+        {route === "processing" && pendingInputs && (
+          <ProcessingScreen inputs={pendingInputs} onComplete={handleProcessingComplete} />
+        )}
+        {route === "decision" && activeMerchant && (
+          <DecisionScreen merchant={activeMerchant} onBack={handleBackToQueue} onAudit={handleAudit} />
+        )}
+        {route === "audit" && activeMerchant && (
+          <AuditScreen merchant={activeMerchant} onBack={handleBackToDecision} />
+        )}
+      </main>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
